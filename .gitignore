@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables & secrets
+.env
+*.env
+*.key
+*.pem
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Execution state & runtime memory
+state.json
+.goa_memory.json
+.graphify_learning.json
+*.log
+
+# Graphify output (generated, not committed)
+graphify-out/
+
+# Benchmark sandboxes & transient runs (scratch codebases generated during benchmarking)
+benchmark/sandboxes/
+benchmark/runs/
+benchmark/v3/
+benchmark/v3_runs/
+ecc/
+ecc2/
+
+# Test / Coverage / Linters
+.pytest_cache/
+htmlcov/
+.coverage
+.mypy_cache/
+.ruff_cache/

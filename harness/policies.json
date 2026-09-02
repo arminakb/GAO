@@ -1,0 +1,115 @@
+{
+  "$schema_version": "1.0",
+
+  "execution_boundaries": {
+    "max_retries_per_agent": 3,
+    "max_total_retries": 10,
+    "token_budget_default": 100000,
+    "max_message_history": 50,
+    "max_parallel_branches": 3,
+    "state_snapshot_interval": 5
+  },
+
+  "access_rules": {
+    "file_system": {
+      "coder":            { "read": true,  "write": true,  "delete": false },
+      "refactor_cleaner": { "read": true,  "write": true,  "delete": true  },
+      "reviewer":         { "read": true,  "write": false, "delete": false },
+      "architect":        { "read": true,  "write": false, "delete": false },
+      "tdd_guide":        { "read": true,  "write": true,  "delete": false },
+      "e2e_runner":       { "read": true,  "write": false, "delete": false },
+      "doc_updater":      { "read": true,  "write": true,  "delete": false },
+      "default":          { "read": true,  "write": false, "delete": false }
+    }
+  },
+
+  "routing_rules": {
+    "forbidden_transitions": [
+      {
+        "from": "coder",
+        "to": "coder",
+        "reason": "Self-loop prevention: code must be reviewed before re-implementation"
+      },
+      {
+        "from": "refactor_cleaner",
+        "to": "refactor_cleaner",
+        "reason": "Self-loop prevention: cleanup must be verified before continuing"
+      }
+    ],
+    "required_transitions": [
+      {
+        "after": "coder",
+        "must_visit": "reviewer",
+        "before": "end",
+        "reason": "All generated code must pass the quality gate before completion"
+      },
+      {
+        "after": "architect",
+        "must_visit": "planner",
+        "before": "coder",
+        "reason": "Architectural decisions must be decomposed into tasks before implementation"
+      }
+    ],
+    "direct_handoffs": [
+      {
+        "from": "coder",
+        "to": "reviewer",
+        "condition": "code_changes_present",
+        "reason": "Skip orchestrator: code always goes to review"
+      },
+      {
+        "from": "tdd_guide",
+        "to": "coder",
+        "condition": "tests_written",
+        "reason": "Skip orchestrator: tests precede implementation in TDD"
+      },
+      {
+        "from": "build_error_resolver",
+        "to": "coder",
+        "condition": "fix_identified",
+        "reason": "Skip orchestrator: build fixes go directly to implementation"
+      }
+    ]
+  },
+
+  "token_policies": {
+    "per_agent_limits": {
+      "orchestrator": 2500,
+      "planner": 8000,
+      "architect": 10000,
+      "reviewer": 10000,
+      "coder": 15000,
+      "tdd_guide": 8000,
+      "build_error_resolver": 5000,
+      "e2e_runner": 5000,
+      "refactor_cleaner": 8000,
+      "doc_updater": 5000,
+      "loop_operator": 4000,
+      "harness_optimizer": 5000,
+      "database_reviewer": 8000,
+      "security_reviewer": 8000
+    },
+    "warning_threshold_percent": 80,
+    "hard_limit_action": "interrupt"
+  },
+
+  "safety_rules": {
+    "destructive_action_confirmation": true,
+    "require_test_before_deploy": true,
+    "max_files_modified_per_cycle": 10,
+    "banned_operations": [
+      "rm -rf /",
+      "DROP DATABASE",
+      "DELETE FROM .* WHERE 1=1",
+      "TRUNCATE TABLE",
+      "FORMAT C:",
+      "sudo rm"
+    ],
+    "require_human_approval_for": [
+      "database_migration",
+      "dependency_major_upgrade",
+      "security_config_change",
+      "production_deployment"
+    ]
+  }
+}

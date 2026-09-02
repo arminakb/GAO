@@ -1,0 +1,20 @@
+[
+  {
+    "task_id": "backend",
+    "domain": "backend",
+    "text_path": "benchmark/specs/SPEC-BACKEND.md",
+    "seeds": [1, 2]
+  },
+  {
+    "task_id": "frontend",
+    "domain": "frontend",
+    "text_path": "benchmark/specs/SPEC-FRONTEND.md",
+    "seeds": [1, 2]
+  },
+  {
+    "task_id": "database",
+    "domain": "database",
+    "text_path": "benchmark/specs/SPEC-DATABASE.md",
+    "seeds": [1, 2]
+  }
+]
