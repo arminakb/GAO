@@ -89,7 +89,7 @@ GOA was evaluated against baseline solo coding agents and the [Everything Claude
 
 ---
 
-## 4. Benchmark Results (Prominently Highlighted)
+## 4. Empirical Benchmark Results
 
 The benchmark evaluated **Solo vs [ECC](https://github.com/affaan-m/ecc) vs GOA Orchestrator** on 24 completed runs across 3 software engineering domains (**Backend, Frontend, Database**) on fresh, isolated sandboxes using OpenCode (`opencode/muse-spark-1.2-contributor-free`) with automated mechanical verification gates:
 
