@@ -404,7 +404,7 @@ async def create_mcp_tools(
     server_params: dict[str, Any] | None = None,
 ) -> dict[str, list[BaseTool]]:
     """Start MCP servers and convert their tools to partitioned LangChain Tool objects."""
-    from langchain_mcp_adapters.client import MultiServerMCPClient  # type: ignore[import-not-found]
+    from langchain_mcp_adapters.client import MultiServerMCPClient
 
     base_dir = Path(__file__).resolve().parent.parent
     knowledge_script = str(base_dir / "skills" / "servers" / "knowledge_mcp.py")
