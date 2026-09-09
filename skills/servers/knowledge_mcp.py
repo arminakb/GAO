@@ -184,21 +184,28 @@ def read_knowledge(name: str) -> str:
 
 @server.tool()
 def search_knowledge(query: str) -> list[dict[str, str]]:
-    """Search across all knowledge files for a keyword or phrase.
+    """Search across all knowledge files for keywords or a phrase.
 
-    Ranking: matches in a file's name, description, or tags score highest
-    (files are listed with a ``line_number`` of ``"0"`` and a ``match``
-    type); body line matches follow. Case-insensitive.
+    Multi-word queries are tokenized: a file matches if ANY term matches
+    (OR semantics) and files matching more terms rank higher. Ranking:
+    matches in a file's name, description, or tags score highest (files
+    are listed with a ``line_number`` of ``"0"`` and a ``match`` type of
+    ``"metadata"``); body line matches follow. Case-insensitive.
 
     Args:
-        query: The search term.
+        query: One or more search terms, e.g. ``"fastapi sqlmodel"``.
 
     Returns:
         A list of dicts with ``name``, ``line_number``, ``excerpt``, and
         ``match`` keys.
     """
-    query_lower = query.lower()
-    scored: list[tuple[int, dict[str, str]]] = []
+    terms = [t for t in re.split(r"\s+", query.lower().strip()) if t]
+    if not terms:
+        return []
+    # Phrase queries degrade gracefully: every phrase hit also matches its
+    # terms, so OR semantics is a superset — only ranking strength differs.
+    scored: list[tuple[int, int, int, dict[str, str]]] = []
+    seen: set[tuple[str, str]] = set()
 
     for path in _iter_md_files():
         try:
@@ -206,12 +213,16 @@ def search_knowledge(query: str) -> list[dict[str, str]]:
         except OSError:
             continue
         name = _name_for(path)
+        lines = text.splitlines()
 
         # Metadata-level match (name / description / tags) ranks first.
         metadata_blob = f"{name} {description} {', '.join(tags)}".lower()
-        if query_lower in metadata_blob:
+        meta_terms = sum(1 for t in terms if t in metadata_blob)
+        if meta_terms:
             scored.append(
                 (
+                    0,
+                    -meta_terms,
                     0,
                     {
                         "name": name,
@@ -221,23 +232,30 @@ def search_knowledge(query: str) -> list[dict[str, str]]:
                     },
                 )
             )
+            seen.add((name, "0"))
 
-        for i, line in enumerate(text.splitlines(), start=1):
-            if query_lower in line.lower():
-                scored.append(
-                    (
-                        1,
-                        {
-                            "name": name,
-                            "line_number": str(i),
-                            "excerpt": line.strip()[:200],
-                            "match": "body",
-                        },
+        for i, line in enumerate(lines, start=1):
+            line_lower = line.lower()
+            hits = sum(1 for t in terms if t in line_lower)
+            if hits:
+                key = (name, str(i))
+                if key not in seen:
+                    scored.append(
+                        (
+                            1,
+                            -hits,
+                            i,
+                            {
+                                "name": name,
+                                "line_number": str(i),
+                                "excerpt": line.strip()[:200],
+                                "match": "body",
+                            },
+                        )
                     )
-                )
 
-    scored.sort(key=lambda pair: pair[0])
-    return [result for _, result in scored[:_MAX_SEARCH_RESULTS]]
+    scored.sort(key=lambda pair: (pair[0], pair[1], pair[2]))
+    return [result for _, _, _, result in scored[:_MAX_SEARCH_RESULTS]]
 
 
 # ---------------------------------------------------------------------------

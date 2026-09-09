@@ -69,6 +69,42 @@ def test_knowledge_server_search(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     assert "asyncio" in results[0]["excerpt"]
 
 
+def test_knowledge_server_search_multi_term(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Multi-term queries use OR semantics; files matching more terms rank first."""
+    knowledge_dir = tmp_path / "knowledge"
+    knowledge_dir.mkdir()
+    (knowledge_dir / "web-stack.md").write_text(
+        "---\ndescription: FastAPI, SQLModel backend patterns\ntags: fastapi, sqlmodel, backend\n---\n"
+        "# Web Stack\nFastAPI and SQLModel and Backend patterns live here.\n",
+        encoding="utf-8",
+    )
+    (knowledge_dir / "partial.md").write_text(
+        "# Partial\nOnly mentions FastAPI once.\n", encoding="utf-8"
+    )
+    (knowledge_dir / "unrelated.md").write_text(
+        "# Unrelated\nNothing relevant in this file.\n", encoding="utf-8"
+    )
+
+    monkeypatch.setattr(km, "KNOWLEDGE_DIR", knowledge_dir)
+
+    results = km.search_knowledge("fastapi sqlmodel backend")
+    names = [r["name"] for r in results]
+    # The file matching all three terms outranks the partial match.
+    assert names[0] == "web-stack"
+    assert "partial" in names
+    assert "unrelated" not in names
+
+    # Metadata matches (name/description/tags) still outrank body matches.
+    meta = [r for r in results if r["match"] == "metadata"]
+    body = [r for r in results if r["match"] == "body"]
+    assert meta and body
+
+    # Single-term and phrase behavior preserved.
+    single = km.search_knowledge("sqlmodel")
+    assert {r["name"] for r in single} == {"web-stack"}
+    assert km.search_knowledge("   ") == []
+
+
 def test_knowledge_server_no_write() -> None:
     """Verify that knowledge server exposes no write, create, or delete tools."""
     # List of all tools registered on the server
