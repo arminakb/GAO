@@ -69,13 +69,19 @@ def test_knowledge_server_search(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     assert "asyncio" in results[0]["excerpt"]
 
 
-def test_knowledge_server_search_multi_term(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_knowledge_server_search_multi_term(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Multi-term queries use OR semantics; files matching more terms rank first."""
     knowledge_dir = tmp_path / "knowledge"
     knowledge_dir.mkdir()
+    frontmatter = (
+        "---\ndescription: FastAPI, SQLModel backend patterns\n"
+        "tags: fastapi, sqlmodel, backend\n---\n"
+    )
     (knowledge_dir / "web-stack.md").write_text(
-        "---\ndescription: FastAPI, SQLModel backend patterns\ntags: fastapi, sqlmodel, backend\n---\n"
-        "# Web Stack\nFastAPI and SQLModel and Backend patterns live here.\n",
+        frontmatter
+        + "# Web Stack\nFastAPI and SQLModel and Backend patterns live here.\n",
         encoding="utf-8",
     )
     (knowledge_dir / "partial.md").write_text(
