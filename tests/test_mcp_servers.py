@@ -80,8 +80,7 @@ def test_knowledge_server_search_multi_term(
         "tags: fastapi, sqlmodel, backend\n---\n"
     )
     (knowledge_dir / "web-stack.md").write_text(
-        frontmatter
-        + "# Web Stack\nFastAPI and SQLModel and Backend patterns live here.\n",
+        frontmatter + "# Web Stack\nFastAPI and SQLModel and Backend patterns live here.\n",
         encoding="utf-8",
     )
     (knowledge_dir / "partial.md").write_text(
