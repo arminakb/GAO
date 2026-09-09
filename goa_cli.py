@@ -43,7 +43,7 @@ def _banned() -> list[str]:
 
 def cmd_init(args: argparse.Namespace) -> int:
     root = Path(args.workspace).resolve()
-    server = Path(__file__).parent.parent / "skills" / "servers" / "goa_mcp.py"
+    server = Path(__file__).resolve().parent / "skills" / "servers" / "goa_mcp.py"
     py, srv, cwd = sys.executable, str(server), str(root)
     print("GOA MCP registration snippets — pick your coding agent:\n")
 
